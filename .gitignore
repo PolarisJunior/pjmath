@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# ninja
+*.ninja
+.ninja_deps
+.ninja_log
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+*.cmake
