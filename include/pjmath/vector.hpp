@@ -102,10 +102,10 @@ class VectorBase : public std::array<ValueType, N> {
 };
 
 template <std::size_t N, typename ValueType, typename VectorType>
-const VectorType VectorBase<N, ValueType, VectorType>::zero{};
+inline const VectorType VectorBase<N, ValueType, VectorType>::zero{};
 
 template <std::size_t N, typename ValueType, typename VectorType>
-const VectorType VectorBase<N, ValueType, VectorType>::one = ([]() {
+inline const VectorType VectorBase<N, ValueType, VectorType>::one = ([]() {
   VectorType ret;
   std::fill(ret.begin(), ret.end(), 1);
   return ret;
@@ -153,11 +153,11 @@ class Vector4 : public VectorBase<4, real_t, Vector4> {
   real_t& w = std::get<3>(*this);
 };
 
-const Vector3 Vector3::right = Vector3{1, 0, 0};
-const Vector3 Vector3::left = Vector3{-1, 0, 0};
-const Vector3 Vector3::up = Vector3{0, 1, 0};
-const Vector3 Vector3::down = Vector3{0, -1, 0};
-const Vector3 Vector3::forward = Vector3{0, 0, 1};
-const Vector3 Vector3::backward = Vector3{0, 0, -1};
+inline const Vector3 Vector3::right = Vector3{1, 0, 0};
+inline const Vector3 Vector3::left = Vector3{-1, 0, 0};
+inline const Vector3 Vector3::up = Vector3{0, 1, 0};
+inline const Vector3 Vector3::down = Vector3{0, -1, 0};
+inline const Vector3 Vector3::forward = Vector3{0, 0, 1};
+inline const Vector3 Vector3::backward = Vector3{0, 0, -1};
 
 }  // namespace pjmath
