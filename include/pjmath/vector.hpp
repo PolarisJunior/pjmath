@@ -5,7 +5,7 @@
 #include <functional>
 #include <numeric>
 
-#include "math_defs.h"
+#include "math_defs.hpp"
 
 /**
  * To create a vector of size N, use `Vector<N> vec{...}`
