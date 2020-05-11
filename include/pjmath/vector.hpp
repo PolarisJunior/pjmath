@@ -118,6 +118,11 @@ class Vector2 : public VectorBase<2, real_t, Vector2> {
  public:
   real_t& x = std::get<0>(*this);
   real_t& y = std::get<1>(*this);
+
+  Vector2& operator=(const Vector2& other) {
+    std::copy(other.begin(), other.end(), begin());
+    return *this;
+  }
 };
 
 class Vector3 : public VectorBase<3, real_t, Vector3> {
@@ -135,6 +140,11 @@ class Vector3 : public VectorBase<3, real_t, Vector3> {
   real_t Yaw() const noexcept { return y; }
   real_t Roll() const noexcept { return z; }
 
+  Vector3& operator=(const Vector3& other) {
+    std::copy(other.begin(), other.end(), begin());
+    return *this;
+  }
+
   const static Vector3 right;
   const static Vector3 left;
   const static Vector3 up;
@@ -151,6 +161,11 @@ class Vector4 : public VectorBase<4, real_t, Vector4> {
   real_t& y = std::get<1>(*this);
   real_t& z = std::get<2>(*this);
   real_t& w = std::get<3>(*this);
+
+  Vector4& operator=(const Vector4& other) {
+    std::copy(other.begin(), other.end(), begin());
+    return *this;
+  }
 };
 
 inline const Vector3 Vector3::right = Vector3{1, 0, 0};
