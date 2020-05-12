@@ -4,6 +4,7 @@
 #include <array>
 #include <functional>
 #include <numeric>
+#include <type_traits>
 
 #include "math_defs.hpp"
 
@@ -14,72 +15,60 @@
  */
 namespace pjmath {
 
-template <std::size_t N, typename ValueType, typename VectorType>
-class VectorBase : public std::array<ValueType, N> {
+template <std::size_t N, typename ValueType = real_t>
+class Vector : public std::array<ValueType, N> {
  public:
-  VectorType& operator+=(const VectorType& other) {
+  Vector& operator+=(const Vector& other) {
     std::transform(begin(), end(), other.begin(), begin(),
                    std::plus<ValueType>());
-    return *static_cast<VectorType*>(this);
+    return *this;
   }
 
-  VectorType operator+(const VectorType& other) const {
-    return VectorType(*static_cast<const VectorType*>(this)) += other;
-  }
+  Vector operator+(const Vector& other) const { return Vector(*this) += other; }
 
-  VectorType& operator-=(const VectorType& other) {
+  Vector& operator-=(const Vector& other) {
     std::transform(begin(), end(), other.begin(), begin(),
                    std::minus<ValueType>());
-    return *static_cast<VectorType*>(this);
+    return *this;
   }
 
-  VectorType operator-(const VectorType& other) const {
-    return VectorType(*static_cast<const VectorType*>(this)) -= other;
-  }
+  Vector operator-(const Vector& other) const { return Vector(*this) -= other; }
 
-  VectorType& operator*=(const VectorType& other) {
+  Vector& operator*=(const Vector& other) {
     std::transform(begin(), end(), other.begin(), begin(),
                    std::multiplies<ValueType>());
-    return *static_cast<VectorType*>(this);
+    return *this;
   }
 
-  VectorType operator*(const VectorType& other) const {
-    return VectorType(*static_cast<const VectorType*>(this)) *= other;
-  }
+  Vector operator*(const Vector& other) const { return Vector(*this) *= other; }
 
-  VectorType& operator*=(ValueType scale) {
+  Vector& operator*=(ValueType scale) {
     std::transform(
         begin(), end(), begin(),
         std::bind(std::multiplies<ValueType>(), scale, std::placeholders::_1));
-    return *static_cast<VectorType*>(this);
+    return *this;
   }
 
-  VectorType operator*(ValueType scale) const {
-    return VectorType(*static_cast<const VectorType*>(this)) *= scale;
-  }
+  Vector operator*(ValueType scale) const { return Vector(*this) *= scale; }
 
-  VectorType& operator/=(const VectorType& other) {
+  Vector& operator/=(const Vector& other) {
     std::transform(begin(), end(), other.begin(), begin(),
                    std::divides<ValueType>());
-    return *static_cast<VectorType*>(this);
+    return *this;
   }
 
-  VectorType operator/(const VectorType& other) const {
-    return VectorType(*static_cast<const VectorType*>(this)) /= other;
-  }
+  Vector operator/(const Vector& other) const { return Vector(*this) /= other; }
 
-  VectorType& operator/=(ValueType factor) {
+  Vector& operator/=(ValueType factor) {
     std::transform(
         begin(), end(), begin(),
         std::bind(std::divides<ValueType>(), std::placeholders::_1, factor));
-    return *static_cast<VectorType*>(this);
+    return *this;
   }
 
-  VectorType operator/(ValueType factor) {
-    return VectorType(*static_cast<const VectorType*>(this)) /= factor;
-  }
+  Vector operator/(ValueType factor) { return Vector(*this) /= factor; }
 
-  ValueType Dot(const VectorBase& other) const {
+  ValueType Dot(const Vector& other) const {
     return std::inner_product(begin(), end(), other.begin(), 0.0);
   }
 
@@ -87,92 +76,83 @@ class VectorBase : public std::array<ValueType, N> {
 
   ValueType Norm() const { return std::sqrt(NormSquared()); }
 
-  VectorType Normalized() const {
-    return VectorType(*static_cast<const VectorType*>(this)).Normalize();
-  }
+  Vector Normalized() const { return Vector(*this).Normalize(); }
 
-  VectorType& Normalize() {
+  Vector& Normalize() {
     ValueType norm = Norm();
-    return norm <= 0 ? *static_cast<VectorType*>(this)
-                     : *static_cast<VectorType*>(this) /= norm;
+    return norm <= 0 ? *this : *this /= norm;
   }
 
-  static const VectorType zero;
-  static const VectorType one;
-};
+  ValueType& X() { return std::get<0>(*this); }
+  ValueType& Y() { return std::get<1>(*this); }
+  ValueType& Z() { return std::get<2>(*this); }
 
-template <std::size_t N, typename ValueType, typename VectorType>
-inline const VectorType VectorBase<N, ValueType, VectorType>::zero{};
+  ValueType X() const { return std::get<0>(*this); }
+  ValueType Y() const { return std::get<1>(*this); }
+  ValueType Z() const { return std::get<2>(*this); }
 
-template <std::size_t N, typename ValueType, typename VectorType>
-inline const VectorType VectorBase<N, ValueType, VectorType>::one = ([]() {
-  VectorType ret;
-  std::fill(ret.begin(), ret.end(), 1);
-  return ret;
-})();
-
-template <std::size_t N>
-class Vector : public VectorBase<N, real_t, Vector<N>> {};
-
-class Vector2 : public VectorBase<2, real_t, Vector2> {
- public:
-  real_t& x = std::get<0>(*this);
-  real_t& y = std::get<1>(*this);
-
-  Vector2& operator=(const Vector2& other) {
-    std::copy(other.begin(), other.end(), begin());
-    return *this;
-  }
-};
-
-class Vector3 : public VectorBase<3, real_t, Vector3> {
- public:
-  real_t& x = std::get<0>(*this);
-  real_t& y = std::get<1>(*this);
-  real_t& z = std::get<2>(*this);
-
-  Vector3 Cross(const Vector3& other) const noexcept {
-    return Vector3{y * other.z - z * other.y, z * other.x - x * other.z,
-                   x * other.y - y * other.x};
+  static Vector One() {
+    Vector ret;
+    std::fill(ret.begin(), ret.end(), 1);
+    return ret;
   }
 
-  real_t Pitch() const noexcept { return x; }
-  real_t Yaw() const noexcept { return y; }
-  real_t Roll() const noexcept { return z; }
+  static Vector Zero() { return Vector{}; }
 
-  Vector3& operator=(const Vector3& other) {
-    std::copy(other.begin(), other.end(), begin());
-    return *this;
+  template <std::size_t N = N,
+            typename ValueType = ValueType,
+            typename std::enable_if<N == 3, int>::type = 0>
+  Vector Cross(const Vector& other) const {
+    return Vector3{Y() * other.Z() - Z() * other.Y(),
+                   Z() * other.X() - X() * other.Z(),
+                   X() * other.Y() - Y() * other.X()};
   }
 
-  const static Vector3 right;
-  const static Vector3 left;
-  const static Vector3 up;
-  const static Vector3 down;
-  const static Vector3 front;
-  const static Vector3 back;
-  const static Vector3 forward;
-  const static Vector3 backward;
-};
+  template <std::size_t N = N,
+            typename ValueType = ValueType,
+            typename std::enable_if<N == 3, int>::type = 0>
+  static Vector Up() {
+    return {0, 1, 0};
+  }
 
-class Vector4 : public VectorBase<4, real_t, Vector4> {
- public:
-  real_t& x = std::get<0>(*this);
-  real_t& y = std::get<1>(*this);
-  real_t& z = std::get<2>(*this);
-  real_t& w = std::get<3>(*this);
+  template <std::size_t N = N,
+            typename ValueType = ValueType,
+            typename std::enable_if<N == 3, int>::type = 0>
+  static Vector Down() {
+    return {0, -1, 0};
+  }
 
-  Vector4& operator=(const Vector4& other) {
-    std::copy(other.begin(), other.end(), begin());
-    return *this;
+  template <std::size_t N = N,
+            typename ValueType = ValueType,
+            typename std::enable_if<N == 3, int>::type = 0>
+  static Vector Right() {
+    return {1, 0, 0};
+  }
+
+  template <std::size_t N = N,
+            typename ValueType = ValueType,
+            typename std::enable_if<N == 3, int>::type = 0>
+  static Vector Left() {
+    return {-1, 0, 0};
+  }
+
+  template <std::size_t N = N,
+            typename ValueType = ValueType,
+            typename std::enable_if<N == 3, int>::type = 0>
+  static Vector Forward() {
+    return {0, 0, 1};
+  }
+
+  template <std::size_t N = N,
+            typename ValueType = ValueType,
+            typename std::enable_if<N == 3, int>::type = 0>
+  static Vector Backward() {
+    return {0, 0, -1};
   }
 };
 
-inline const Vector3 Vector3::right = Vector3{1, 0, 0};
-inline const Vector3 Vector3::left = Vector3{-1, 0, 0};
-inline const Vector3 Vector3::up = Vector3{0, 1, 0};
-inline const Vector3 Vector3::down = Vector3{0, -1, 0};
-inline const Vector3 Vector3::forward = Vector3{0, 0, 1};
-inline const Vector3 Vector3::backward = Vector3{0, 0, -1};
+using Vector2 = Vector<2>;
+using Vector3 = Vector<3>;
+using Vector4 = Vector<4>;
 
 }  // namespace pjmath

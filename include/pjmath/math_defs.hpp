@@ -7,5 +7,7 @@ typedef double real_t;
 typedef float real_t;
 #endif
 
+namespace pjmath {
 constexpr real_t CMP_EPSILON = 0.00001;
 constexpr real_t PI = 3.14159265f;
+}  // namespace pjmath
