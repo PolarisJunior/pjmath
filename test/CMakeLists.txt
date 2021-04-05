@@ -2,6 +2,7 @@
 set(
     ALL_TESTS 
     vector3_tests
+    mat_tests
 )
 
 function(add_test_binary TEST_NAME)
