@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "pjmath/vector.hpp"
+#include <cmath>
 
 using namespace pjmath;
 
-TEST(PJ_MATH_TEST, TEMPLATE_VECTOR_TEST) {
+TEST(PJ_MATH_TEST, TEMPLATE_VECTOR_TEST)
+{
   Vector<5> vec{5, 6, 7, 8, 9};
   EXPECT_EQ(vec[0], 5);
   EXPECT_EQ(vec[1], 6);
@@ -13,12 +15,13 @@ TEST(PJ_MATH_TEST, TEMPLATE_VECTOR_TEST) {
   EXPECT_EQ(vec[4], 9);
 }
 
-TEST(PJ_MATH_TEST, VECTOR3_TEST) {
+TEST(PJ_MATH_TEST, VECTOR3_TEST)
+{
   Vector3 v{1, 2, 3};
   v[0] = 5;
-  EXPECT_EQ(v.x, 5);
-  EXPECT_EQ(v.y, 2);
-  EXPECT_EQ(v.z, 3);
+  EXPECT_EQ(v.x(), 5);
+  EXPECT_EQ(v.y(), 2);
+  EXPECT_EQ(v.z(), 3);
 
   Vector3 vec1{1, 2, 3};
   Vector3 vec2{2, 1, 0};
@@ -43,7 +46,7 @@ TEST(PJ_MATH_TEST, VECTOR3_TEST) {
   std::for_each(vec4.begin(), vec4.end(), [](real_t x) { EXPECT_EQ(x, 60); });
   EXPECT_EQ(vec4.Dot(Vector3{2, 2, 2}), 360);
 
-  EXPECT_EQ((Vector3{1, 1, 0}).Norm(), std::sqrtf(2.0));
+  EXPECT_FLOAT_EQ((Vector3{1, 1, 0}).Norm(), std::sqrt(2.0));
 
   Vector3 vec5 = vec4.Normalized();
   std::for_each(vec5.begin(), vec5.end(), [](real_t x) { EXPECT_LE(x, .6); });
@@ -52,15 +55,17 @@ TEST(PJ_MATH_TEST, VECTOR3_TEST) {
   EXPECT_FLOAT_EQ(n, 1);
 }
 
-TEST(PJ_MATH_TEST, STATIC_MEMBER_TEST) {
-  std::for_each(Vector3::zero.begin(), Vector3::zero.end(),
+TEST(PJ_MATH_TEST, STATIC_MEMBER_TEST)
+{
+  std::for_each(Vector3::Zero().begin(), Vector3::Zero().end(),
                 [](real_t x) { EXPECT_EQ(x, 0); });
 
-  std::for_each(Vector3::one.begin(), Vector3::one.end(),
+  std::for_each(Vector3::One().begin(), Vector3::One().end(),
                 [](real_t x) { EXPECT_EQ(x, 1); });
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
