@@ -1,11 +1,8 @@
 
 #pragma once
 
-#include "math_defs.hpp"
-
 #include <array>
 #include <type_traits>
-#include <initializer_list>
 
 namespace pjmath
 {
@@ -20,11 +17,16 @@ namespace pjmath
   class Mat : public std::array<E, M * N>
   {
   public:
-    using Array = std::array<E, M * N>; ///< Array type which backs the matrix
+    using Array = std::array<E, M * N>;          ///< Array type which backs the matrix
+    using Transpose = Mat<E, N, M>;              ///< Type for a transpose of this matrix type
+    using size_type = typename Array::size_type; ///< Array size type
 
     using Array::Array; ///< Inherit array constructors (there are currently no array constructors)
+    using Array::at;    ///< We provide overrides of `at`, so this must be explicitly inherited
 
-    static constexpr bool is_square = M == N; ///< True if the matrix is a square matrix
+    static constexpr bool is_square = M == N;    ///< True if the matrix is a square matrix
+    static constexpr size_type row_count = M;    ///< Number of rows
+    static constexpr size_type column_count = N; ///< Number of columns
 
     /**
      * @brief Constructs a Matrix from a parameter pack
@@ -45,14 +47,64 @@ namespace pjmath
     }
 
     /**
+     * @brief Gets the element at the given row and column
+     * 
+     * @param r Row
+     * @param c Column
+     * @return Const reference to the element
+     */
+    const E &at(size_type r, size_type c) const
+    {
+      return this->at(r * N + c);
+    }
+
+    /**
+     * @brief Gets the element at the given row and column
+     * 
+     * @param r Row
+     * @param c Column
+     * @return Reference to the element
+     */
+    E &at(size_type r, size_type c)
+    {
+      return this->at(r * N + c);
+    }
+
+    /**
+     * @brief Gets the element at the given row and column
+     * 
+     * @tparam r Row
+     * @tparam c Column
+     * @return Const reference to the element
+     */
+    template <size_type r, size_type c>
+    const E &get() const
+    {
+      return std::get<r * N + c>(*this);
+    }
+
+    /**
+     * @brief Gets the element at the given row and column
+     * 
+     * @tparam r Row
+     * @tparam c Column
+     * @return Reference to the element
+     */
+    template <size_type r, size_type c>
+    E &get()
+    {
+      return std::get<r * N + c>(*this);
+    }
+
+    /**
      * @brief Element-wise addition
      * 
      * @param rhs Matrix to be added to this
-     * @return Mat& A reference to this
+     * @return A reference to this
      */
     Mat &operator+=(const Mat &rhs)
     {
-      for (size_t i = 0; i < this->size(); i++)
+      for (size_type i = 0; i < this->size(); i++)
       {
         this->at(i) += rhs.at(i);
       }
@@ -63,7 +115,7 @@ namespace pjmath
      * @brief Element-wise addition
      * 
      * @param rhs Matrix to be added with this
-     * @return Mat A matrix which is the sum of this and @a rhs
+     * @return A matrix which is the sum of this and @a rhs
      */
     Mat operator+(const Mat &rhs) const
     {
@@ -76,11 +128,11 @@ namespace pjmath
      * @brief Element-wise subtraction
      * 
      * @param rhs The minuend
-     * @return Mat& A reference to this
+     * @return A reference to this
      */
     Mat &operator-=(const Mat &rhs)
     {
-      for (size_t i = 0; i < this->size(); i++)
+      for (size_type i = 0; i < this->size(); i++)
       {
         this->at(i) -= rhs.at(i);
       }
@@ -91,7 +143,7 @@ namespace pjmath
      * @brief Element-wise subtraction
      * 
      * @param rhs The minuend
-     * @return Mat A matrix which is the result of this - @a rhs
+     * @return A matrix which is the result of this - @a rhs
      */
     Mat operator-(const Mat &rhs) const
     {
@@ -103,9 +155,9 @@ namespace pjmath
     /**
      * @brief Element-wise negation
      * 
-     * @return Mat A matrix where all the elements are negated from this
+     * @return A matrix where all the elements are negated from this
      */
-    Mat operator-()
+    Mat operator-() const
     {
       Mat mat = Mat::zero();
       mat -= *this;
@@ -113,16 +165,44 @@ namespace pjmath
     }
 
     /**
+     * @brief Element-wise multiplication by a scalar
+     * 
+     * @param v Multiplication factor
+     * @return Reference to this
+     */
+    Mat &operator*=(const E &v)
+    {
+      for (E &e : *this)
+      {
+        e *= v;
+      }
+      return *this;
+    }
+
+    /**
+     * @brief Element-wise multiplication by a scalar
+     * 
+     * @param v Multiplication factor
+     * @return Matrix whose elements are this matrix's elements multiplied by @a v
+     */
+    Mat operator*(const E &v) const
+    {
+      Mat mat = *this;
+      mat *= v;
+      return mat;
+    }
+
+    /**
      * @brief Constructs a matrix where all elements are set to the same value
      * 
      * @tparam value The value to set the elements to
-     * @return Mat Matrix where all the elements are @a value
+     * @return Matrix where all the elements are @a value
      */
     template <E value>
     static constexpr Mat filled()
     {
       Mat mat;
-      for (size_t i = 0; i < mat.size(); i++)
+      for (size_type i = 0; i < mat.size(); i++)
       {
         mat.at(i) = value;
       }
@@ -133,12 +213,12 @@ namespace pjmath
      * @brief Constructs a matrix where all elements are set to the same value
      * 
      * @param value The value to set the elements to
-     * @return Mat Matrix where all the elements are @a value
+     * @return Matrix where all the elements are @a value
      */
     static Mat filled(const E &value)
     {
       Mat mat;
-      for (size_t i = 0; i < mat.size(); i++)
+      for (size_type i = 0; i < mat.size(); i++)
       {
         mat.at(i) = value;
       }
@@ -148,7 +228,7 @@ namespace pjmath
     /**
      * @brief Constructs a zero matrix
      * 
-     * @return Mat a matrix where all elements are zero
+     * @return A matrix where all elements are zero
      */
     static constexpr Mat zero()
     {
@@ -158,7 +238,7 @@ namespace pjmath
     /**
      * @brief Constructs a matrix where all elements are one
      * 
-     * @return Mat a matrix where all elements are one
+     * @return A matrix where all elements are one
      */
     static constexpr Mat one()
     {
@@ -175,7 +255,7 @@ namespace pjmath
     static constexpr typename std::enable_if<Mat::is_square, Mat>::type diagonal()
     {
       Mat mat = Mat::zero();
-      for (size_t i = 0; i < N; i += N + 1)
+      for (size_type i = 0; i < N; i += N + 1)
       {
         mat.at(i) = value;
       }
@@ -191,7 +271,7 @@ namespace pjmath
     static constexpr typename std::enable_if<Mat::is_square, Mat>::type diagonal(const E &value)
     {
       Mat mat = Mat::zero();
-      for (size_t i = 0; i < N; i += N + 1)
+      for (size_type i = 0; i < N; i += N + 1)
       {
         mat.at(i) = value;
       }
@@ -203,11 +283,50 @@ namespace pjmath
      * 
      * @ref Mat::is_square must be true
      * 
-     * @return Mat An identity matrix
+     * @return An identity matrix
      */
     static constexpr Mat identity()
     {
       return Mat::diagonal<1>();
+    }
+
+    /**
+     * @brief Gets the transpose of this matrix
+     * 
+     * @return A new matrix which is the transpose of this matrix 
+     */
+    Transpose transposed() const
+    {
+      Transpose mat;
+      for (size_type row = 0; row < row_count; row++)
+      {
+        for (size_type column = 0; column < column_count; column++)
+        {
+          mat.at(column, row) = this->at(row, column);
+        }
+      }
+      return mat;
+    }
+
+    /**
+     * @brief Transposes the elements of this matrix
+     * 
+     * @ref Mat::is_square must be true since this performs the transpose in place
+     * 
+     * @return A reference to this
+     */
+    std::enable_if<Mat::is_square, Mat> &transpose()
+    {
+      for (size_type row = 0; row < row_count; row++)
+      {
+        for (size_type column = 0; column < column_count; column++)
+        {
+          E temp = this->at(row, column);
+          this->at(row, column) = this->at(column, row);
+          this->at(column, row) = temp;
+        }
+      }
+      return *this;
     }
   };
 }
