@@ -111,7 +111,7 @@ namespace pjmath
       {
         this->at(i) += rhs.at(i);
       }
-      return *dynamic_cast<Self *>(this);
+      return *self();
     }
 
     /**
@@ -139,7 +139,7 @@ namespace pjmath
       {
         this->at(i) -= rhs.at(i);
       }
-      return *dynamic_cast<Self *>(this);
+      return *self();
     }
 
     /**
@@ -179,7 +179,7 @@ namespace pjmath
       {
         e *= v;
       }
-      return *this;
+      return *self();
     }
 
     /**
@@ -195,6 +195,15 @@ namespace pjmath
       return mat;
     }
 
+    Self &fill(const E &value)
+    {
+      for (size_type i = 0; i < this->size(); i++)
+      {
+        this->at(i) = value;
+      }
+      return *self();
+    }
+
     /**
      * @brief Constructs a matrix where all elements are set to the same value
      * 
@@ -204,10 +213,7 @@ namespace pjmath
     static Mat filled(const E &value)
     {
       Mat mat;
-      for (size_type i = 0; i < mat.size(); i++)
-      {
-        mat.at(i) = value;
-      }
+      mat.fill(value);
       return mat;
     }
 
@@ -240,7 +246,7 @@ namespace pjmath
     static constexpr typename std::enable_if<Mat::is_square, Mat>::type diagonal(const E &value)
     {
       Mat mat = Mat::zero();
-      for (size_type i = 0; i < N; i += N + 1)
+      for (size_type i = 0; i < mat.size(); i += N + 1)
       {
         mat.at(i) = value;
       }
@@ -311,6 +317,23 @@ namespace pjmath
         ret += value;
       }
       return ret;
+    }
+
+  protected:
+    /**
+     * @return A this pointer using the derived type 
+     */
+    Self *self()
+    {
+      return dynamic_cast<Self *>(this);
+    }
+
+    /**
+     * @return A const this pointer using the derived type 
+     */
+    const Self *self() const
+    {
+      return dynamic_cast<const Self *>(this);
     }
   };
 

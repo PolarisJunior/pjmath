@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include <utility>
-#include <ratio>
 
 using namespace pjmath;
 
@@ -96,18 +95,6 @@ TEST(PJ_MAT_TEST, test_fill_matrix)
 
   testFillMatrices(matrix_sizes, int_values);
   testFillFloatMatrices<double, 1, 3, 4, 7, 9, 12>(dbl_values);
-
-  // auto sizes = std::make_tuple(1, 3, 5, 7, 9, 11);
-  // std::apply([](const auto &...elem) {
-  //   ((testFillMatrix<int, elem, elem>(10)), ...);
-  // },
-  //            sizes);
-
-  // (sizes... + ...);
-  // std::apply([](const auto &...elem) {
-  //   ((std::cout << elem << "what\n"), ...);
-  // },
-  //            std::make_tuple(sizes));
 }
 
 /**
