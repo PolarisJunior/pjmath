@@ -65,6 +65,7 @@
         "atomic": "cpp",
         "bit": "cpp",
         "memory_resource": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "ratio": "cpp"
     }
 }

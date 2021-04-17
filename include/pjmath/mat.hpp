@@ -222,7 +222,7 @@ namespace pjmath
      * 
      * @return A matrix where all elements are zero
      */
-    static constexpr Mat zero()
+    static Mat zero()
     {
       return Mat::filled(0);
     }
@@ -232,20 +232,20 @@ namespace pjmath
      * 
      * @return A matrix where all elements are one
      */
-    static constexpr Mat one()
+    static Mat one()
     {
       return Mat::filled(1);
     }
 
     /**
-     * @brief Constructs a scalar diagonal matrix
+     * @brief Constructs a diagonal matrix. 
      * 
      * @param value Value to be set along the diagonal
-     * @return A square matrix where elements along the diagonal equal @a value and all other elements are zero
+     * @return A matrix whose elements along the diagonal equal @a value and all other elements are zero
      */
-    static constexpr typename std::enable_if<Mat::is_square, Mat>::type diagonal(const E &value)
+    static Self diagonal(const E &value)
     {
-      Mat mat = Mat::zero();
+      Self mat = Self::zero();
       for (size_type i = 0; i < mat.size(); i += N + 1)
       {
         mat.at(i) = value;
@@ -260,7 +260,7 @@ namespace pjmath
      * 
      * @return An identity matrix
      */
-    static constexpr Mat identity()
+    static Mat identity()
     {
       return Mat::diagonal(1);
     }
@@ -290,7 +290,8 @@ namespace pjmath
      * 
      * @return A reference to this
      */
-    typename std::enable_if<Self::is_square, Self>::type &transpose()
+    template <typename T = Self>
+    typename std::enable_if<M == N, T>::type &transpose()
     {
       for (size_type row = 0; row < row_count; row++)
       {

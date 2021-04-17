@@ -42,7 +42,8 @@ void testDiagonalMatrices(std::integer_sequence<std::size_t, M...>, const std::v
 
 TEST(PJ_MAT_TEST, test_diagonal_matrices)
 {
-  std::integer_sequence<std::size_t, 1, 3, 4, 6, 10, 15, 18> matrix_sizes;
+  //std::integer_sequence<std::size_t, 1, 3, 4, 6, 10, 15, 18> matrix_sizes;
+  std::integer_sequence<std::size_t, 1, 3> matrix_sizes;
   std::vector<double> dbl_values{-111.1111, -50.0, -23.001, -0.00145, -0.0, 0.0, 0.00123, 12.333, 45.5121};
   std::vector<float> float_values{-111.1111, -50.0, -23.001, -0.00145, -0.0, 0.0, 0.00123, 12.333, 45.5121};
   testDiagonalMatrices<double>(matrix_sizes, dbl_values);

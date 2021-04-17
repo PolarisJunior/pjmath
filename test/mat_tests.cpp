@@ -29,6 +29,9 @@ TEST(PJ_MAT_TEST, addition)
   ASSERT_EQ(mat1.size(), 1);
   mat1.transposed();
   mat1.transpose();
+
+  Mat<int, 1, 2> mat5;
+  mat5 += mat5;
 }
 
 template <size_t X>
