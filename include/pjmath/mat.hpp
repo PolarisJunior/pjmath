@@ -12,8 +12,9 @@ namespace pjmath
    * @tparam E Element type of the matrix
    * @tparam M Number of rows in the matrix, must be greater than 0
    * @tparam N Number of columns in the matrix, must be greater than 0
+   * @tparam Derived Concrete class for CRTP
    */
-  template <typename E, size_t M, size_t N>
+  template <typename E, size_t M, size_t N, typename Derived = void>
   class Mat : public std::array<E, M * N>
   {
   public:
@@ -21,8 +22,10 @@ namespace pjmath
     using Transpose = Mat<E, N, M>;              ///< Type for a transpose of this matrix type
     using size_type = typename Array::size_type; ///< Array size type
 
+    using Self = typename std::conditional<std::is_void<Derived>::value, Mat, Derived>::type; ///< Self type for CRTP
+
     using Array::Array; ///< Inherit array constructors (there are currently no array constructors)
-    using Array::at;    ///< We provide overrides of `at`, so this must be explicitly inherited
+    using Array::at;    ///< We provide overloads of `at`, so this must be explicitly inherited
 
     static constexpr bool is_square = M == N;    ///< True if the matrix is a square matrix
     static constexpr size_type row_count = M;    ///< Number of rows
@@ -102,13 +105,13 @@ namespace pjmath
      * @param rhs Matrix to be added to this
      * @return A reference to this
      */
-    Mat &operator+=(const Mat &rhs)
+    Self &operator+=(const Mat &rhs)
     {
       for (size_type i = 0; i < this->size(); i++)
       {
         this->at(i) += rhs.at(i);
       }
-      return *this;
+      return *dynamic_cast<Self *>(this);
     }
 
     /**
@@ -130,13 +133,13 @@ namespace pjmath
      * @param rhs The minuend
      * @return A reference to this
      */
-    Mat &operator-=(const Mat &rhs)
+    Self &operator-=(const Mat &rhs)
     {
       for (size_type i = 0; i < this->size(); i++)
       {
         this->at(i) -= rhs.at(i);
       }
-      return *this;
+      return *dynamic_cast<Self *>(this);
     }
 
     /**
@@ -170,7 +173,7 @@ namespace pjmath
      * @param v Multiplication factor
      * @return Reference to this
      */
-    Mat &operator*=(const E &v)
+    Self &operator*=(const E &v)
     {
       for (E &e : *this)
       {
@@ -192,22 +195,22 @@ namespace pjmath
       return mat;
     }
 
-    /**
-     * @brief Constructs a matrix where all elements are set to the same value
-     * 
-     * @tparam value The value to set the elements to
-     * @return Matrix where all the elements are @a value
-     */
-    template <E value>
-    static constexpr Mat filled()
-    {
-      Mat mat;
-      for (size_type i = 0; i < mat.size(); i++)
-      {
-        mat.at(i) = value;
-      }
-      return mat;
-    }
+    // /**
+    //  * @brief Constructs a matrix where all elements are set to the same value
+    //  *
+    //  * @tparam value The value to set the elements to
+    //  * @return Matrix where all the elements are @a value
+    //  */
+    // template <E value>
+    // static constexpr typename std::enable_if<std::is_integral<E>::value, Mat>::type filled()
+    // {
+    //   Mat mat;
+    //   for (size_type i = 0; i < mat.size(); i++)
+    //   {
+    //     mat.at(i) = value;
+    //   }
+    //   return mat;
+    // }
 
     /**
      * @brief Constructs a matrix where all elements are set to the same value
@@ -232,7 +235,7 @@ namespace pjmath
      */
     static constexpr Mat zero()
     {
-      return Mat::filled<0>();
+      return Mat::filled(0);
     }
 
     /**
@@ -242,25 +245,25 @@ namespace pjmath
      */
     static constexpr Mat one()
     {
-      return Mat::filled<1>();
+      return Mat::filled(1);
     }
 
-    /**
-     * @brief Constructs a scalar diagonal matrix
-     * 
-     * @tparam value Value to be set along the diagonal
-     * @return A square matrix where elements along the diagonal equal @a value and all other elements are zero
-     */
-    template <E value>
-    static constexpr typename std::enable_if<Mat::is_square, Mat>::type diagonal()
-    {
-      Mat mat = Mat::zero();
-      for (size_type i = 0; i < N; i += N + 1)
-      {
-        mat.at(i) = value;
-      }
-      return mat;
-    }
+    // /**
+    //  * @brief Constructs a scalar diagonal matrix
+    //  *
+    //  * @tparam value Value to be set along the diagonal
+    //  * @return A square matrix where elements along the diagonal equal @a value and all other elements are zero
+    //  */
+    // template <E value>
+    // static constexpr typename std::enable_if<Mat::is_square && std::is_integral<E>::value, Mat>::type diagonal()
+    // {
+    //   Mat mat = Mat::zero();
+    //   for (size_type i = 0; i < N; i += N + 1)
+    //   {
+    //     mat.at(i) = value;
+    //   }
+    //   return mat;
+    // }
 
     /**
      * @brief Constructs a scalar diagonal matrix
@@ -287,11 +290,11 @@ namespace pjmath
      */
     static constexpr Mat identity()
     {
-      return Mat::diagonal<1>();
+      return Mat::diagonal(1);
     }
 
     /**
-     * @brief Gets the transpose of this matrix
+     * @brief Returns the transpose of this matrix
      * 
      * @return A new matrix which is the transpose of this matrix 
      */
@@ -315,7 +318,7 @@ namespace pjmath
      * 
      * @return A reference to this
      */
-    std::enable_if<Mat::is_square, Mat> &transpose()
+    typename std::enable_if<Self::is_square, Self>::type &transpose()
     {
       for (size_type row = 0; row < row_count; row++)
       {
@@ -328,5 +331,21 @@ namespace pjmath
       }
       return *this;
     }
+
+    /**
+     * @brief Computes the sum of all elements in the matrix
+     * 
+     * @return The sum of all elements in the matrix
+     */
+    E sum() const
+    {
+      E ret{};
+      for (const E &value : *this)
+      {
+        ret += value;
+      }
+      return ret;
+    }
   };
+
 }
