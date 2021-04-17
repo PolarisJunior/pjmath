@@ -36,10 +36,11 @@ void testIdentityMatrices(std::integer_sequence<std::size_t, M...>)
   ((testIdentityMatrixCase<Element, M>()), ...);
 }
 
-TEST(PJ_MAT_TEST, test_identity_matrix)
+TEST(PJ_MAT_TEST, test_identity_matrices)
 {
   std::integer_sequence<std::size_t, 1, 3, 5, 7, 9, 11, 20> matrix_sizes;
   testIdentityMatrices<double>(matrix_sizes);
+  testIdentityMatrices<float>(matrix_sizes);
 }
 
 int main(int argc, char **argv)
