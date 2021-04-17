@@ -27,9 +27,11 @@ namespace pjmath
     using Array::Array; ///< Inherit array constructors (there are currently no array constructors)
     using Array::at;    ///< We provide overloads of `at`, so this must be explicitly inherited
 
-    static constexpr bool is_square = M == N;    ///< True if the matrix is a square matrix
-    static constexpr size_type row_count = M;    ///< Number of rows
-    static constexpr size_type column_count = N; ///< Number of columns
+    static constexpr bool is_square = M == N;            ///< True if the matrix is a square matrix
+    static constexpr size_type row_count = M;            ///< Number of rows
+    static constexpr size_type column_count = N;         ///< Number of columns
+    static constexpr size_type min_side = M > N ? N : M; ///< The number of rows or columns depending on which is less
+    static constexpr size_type max_side = M > N ? M : N; ///< The  number of rows or columns depending on which is greater
 
     /**
      * @brief Constructs a Matrix from a parameter pack
@@ -246,9 +248,9 @@ namespace pjmath
     static Self diagonal(const E &value)
     {
       Self mat = Self::zero();
-      for (size_type i = 0; i < mat.size(); i += N + 1)
+      for (size_type i = 0; i < mat.min_side; i++)
       {
-        mat.at(i) = value;
+        mat.at(i, i) = value;
       }
       return mat;
     }
