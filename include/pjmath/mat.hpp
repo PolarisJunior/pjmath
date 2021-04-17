@@ -195,23 +195,6 @@ namespace pjmath
       return mat;
     }
 
-    // /**
-    //  * @brief Constructs a matrix where all elements are set to the same value
-    //  *
-    //  * @tparam value The value to set the elements to
-    //  * @return Matrix where all the elements are @a value
-    //  */
-    // template <E value>
-    // static constexpr typename std::enable_if<std::is_integral<E>::value, Mat>::type filled()
-    // {
-    //   Mat mat;
-    //   for (size_type i = 0; i < mat.size(); i++)
-    //   {
-    //     mat.at(i) = value;
-    //   }
-    //   return mat;
-    // }
-
     /**
      * @brief Constructs a matrix where all elements are set to the same value
      * 
@@ -247,23 +230,6 @@ namespace pjmath
     {
       return Mat::filled(1);
     }
-
-    // /**
-    //  * @brief Constructs a scalar diagonal matrix
-    //  *
-    //  * @tparam value Value to be set along the diagonal
-    //  * @return A square matrix where elements along the diagonal equal @a value and all other elements are zero
-    //  */
-    // template <E value>
-    // static constexpr typename std::enable_if<Mat::is_square && std::is_integral<E>::value, Mat>::type diagonal()
-    // {
-    //   Mat mat = Mat::zero();
-    //   for (size_type i = 0; i < N; i += N + 1)
-    //   {
-    //     mat.at(i) = value;
-    //   }
-    //   return mat;
-    // }
 
     /**
      * @brief Constructs a scalar diagonal matrix
