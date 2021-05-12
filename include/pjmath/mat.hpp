@@ -27,11 +27,14 @@ namespace pjmath
     using Array::Array; ///< Inherit array constructors (there are currently no array constructors)
     using Array::at;    ///< We provide overloads of `at`, so this must be explicitly inherited
 
-    static constexpr bool is_square = M == N;            ///< True if the matrix is a square matrix
     static constexpr size_type row_count = M;            ///< Number of rows
     static constexpr size_type column_count = N;         ///< Number of columns
     static constexpr size_type min_side = M > N ? N : M; ///< The number of rows or columns depending on which is less
     static constexpr size_type max_side = M > N ? M : N; ///< The  number of rows or columns depending on which is greater
+
+    static constexpr bool is_square = row_count == column_count;   ///< True if the matrix is a square matrix
+    static constexpr bool is_scalar = is_square && row_count == 1; ///< True if the matrix is a 1 by 1 matrix
+    static constexpr bool is_vector = column_count == 1;           ///< True if the matrix has one column
 
     /**
      * @brief Constructs a Matrix from a parameter pack
@@ -197,6 +200,76 @@ namespace pjmath
       return mat;
     }
 
+    /**
+     * @brief Multiplies this matrix in place by another square matrix 
+     * 
+     * @tparam Product Parameter for SFINAE
+     * @param rhs The right side matrix, must be square
+     * @return A reference to this
+     */
+    template <typename Product = Self>
+    typename std::enable_if_t<is_square && !is_scalar, Product> &operator*=(const Mat &rhs)
+    {
+      Product product;
+      for (size_type row = 0; row < row_count; row++)
+      {
+        for (size_type col = 0; col < column_count; col++)
+        {
+          E cell = 0;
+          for (size_type i = 0; i < row_count; i++)
+          {
+            cell += this->at(row, i) * rhs.at(i, col);
+          }
+          product.at(row, col) = cell;
+        }
+      }
+      return *this = product;
+    }
+
+    /**
+     * @brief Returns the result of multiplying two square matrices
+     * 
+     * @tparam Product The actual matrix type returned
+     * @param rhs The right side matrix
+     * @return The result of the multiplication, with the type of @a Product
+     */
+    template <typename Product = Self>
+    typename std::enable_if<is_square && !is_scalar, Product>::type operator*(const Mat &rhs) const
+    {
+      Product product = *this;
+      product *= rhs;
+      return product;
+    }
+
+    /**
+     * @brief Multiplies this matrix by a vector
+     * 
+     * @tparam Rhs A vector matrix type with Rhs::row_count == this->column_count
+     * @param rhs The vector used to multiply this
+     * @return The result vector
+     */
+    template <typename Rhs = Mat<E, N, 1>>
+    typename std::enable_if_t<Rhs::row_count == column_count, Rhs> operator*(const Rhs &rhs) const
+    {
+      Rhs ret;
+      for (size_type row = 0; row < row_count; row++)
+      {
+        E cell = 0;
+        for (size_type col = 0; col < column_count; col++)
+        {
+          cell += this->at(row, col) * rhs[col];
+        }
+        ret[row] = cell;
+      }
+      return ret;
+    }
+
+    /**
+     * @brief Fills every cell in the matrix with @a value
+     * 
+     * @param value The value used to fill
+     * @return A reference to this
+     */
     Self &fill(const E &value)
     {
       for (size_type i = 0; i < this->size(); i++)

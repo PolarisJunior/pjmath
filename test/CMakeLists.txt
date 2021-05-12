@@ -6,6 +6,7 @@ set(
     mat/arithmetic_tests
     mat/diagonal_tests
     mat/identity_tests
+    mat/multiply_tests
 )
 
 function(add_test_binary TEST_NAME)
