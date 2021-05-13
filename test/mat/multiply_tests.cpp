@@ -22,12 +22,28 @@ TEST(PJ_MAT_TEST, test_multiply_square_matrices)
   testMultiplySquareMatrices<int>();
 }
 
-TEST(PJ_MAT_TEST, test_multiply_matrices)
+TEST(PJ_MAT_TEST, test_multiply_scalar_matrices)
 {
   Mat<int, 1, 1> lhs{5};
   Mat<int, 1, 1> rhs{6};
   Mat<int, 1, 1> expected{30};
-  EXPECT_EQ(lhs * rhs, expected);
+  Mat<int, 1, 1> result = lhs * rhs;
+  lhs *= rhs;
+  EXPECT_EQ(result, expected);
+  EXPECT_EQ(lhs, expected);
+}
+
+TEST(PJ_MAT_TEST, test_multiply_arbitrary_matrices)
+{
+  Mat<int, 3, 4> lhs{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  Mat<int, 4, 3> rhs{13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+  Mat<int, 3, 3> expected{190, 200, 210, 470, 496, 522, 750, 792, 834};
+  Mat<int, 3, 3> result = lhs * rhs;
+  EXPECT_EQ(result, expected);
+}
+
+TEST(PJ_MAT_TEST, test_multiply_matrices)
+{
 }
 
 int main(int argc, char **argv)

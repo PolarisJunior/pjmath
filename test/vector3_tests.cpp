@@ -57,11 +57,11 @@ TEST(PJ_MATH_TEST, VECTOR3_TEST)
 
 TEST(PJ_MATH_TEST, STATIC_MEMBER_TEST)
 {
-  std::for_each(Vector3::Zero().begin(), Vector3::Zero().end(),
-                [](real_t x) { EXPECT_EQ(x, 0); });
+  auto zero = Vector3::Zero();
+  std::for_each(zero.begin(), zero.end(), [](real_t x) { EXPECT_FLOAT_EQ(x, 0); });
 
-  std::for_each(Vector3::One().begin(), Vector3::One().end(),
-                [](real_t x) { EXPECT_EQ(x, 1); });
+  auto one = Vector3::One();
+  std::for_each(one.begin(), one.end(), [](real_t x) { EXPECT_FLOAT_EQ(x, 1); });
 }
 
 int main(int argc, char **argv)

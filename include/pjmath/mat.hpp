@@ -22,19 +22,22 @@ namespace pjmath
     using Transpose = Mat<E, N, M>;              ///< Type for a transpose of this matrix type
     using size_type = typename Array::size_type; ///< Array size type
 
-    using Self = typename std::conditional<std::is_void<Derived>::value, Mat, Derived>::type; ///< Self type for CRTP
-
     using Array::Array; ///< Inherit array constructors (there are currently no array constructors)
     using Array::at;    ///< We provide overloads of `at`, so this must be explicitly inherited
+
+    using Self = typename std::conditional<std::is_void<Derived>::value, Mat, Derived>::type; ///< Self type for CRTP
 
     static constexpr size_type row_count = M;            ///< Number of rows
     static constexpr size_type column_count = N;         ///< Number of columns
     static constexpr size_type min_side = M > N ? N : M; ///< The number of rows or columns depending on which is less
-    static constexpr size_type max_side = M > N ? M : N; ///< The  number of rows or columns depending on which is greater
+    static constexpr size_type max_side = M > N ? M : N; ///< The number of rows or columns depending on which is greater
 
     static constexpr bool is_square = row_count == column_count;   ///< True if the matrix is a square matrix
     static constexpr bool is_scalar = is_square && row_count == 1; ///< True if the matrix is a 1 by 1 matrix
     static constexpr bool is_vector = column_count == 1;           ///< True if the matrix has one column
+
+    static_assert(row_count > 0);
+    static_assert(column_count > 0);
 
     /**
      * @brief Constructs a Matrix from a parameter pack
@@ -43,7 +46,7 @@ namespace pjmath
      * @param elems Elements of the matrix
      */
     template <typename... T>
-    Mat(T... elems) : Array({elems...})
+    Mat(T... elems) : Array({static_cast<E>(elems)...}) // Cast prevents narrowing conversion warning during int literal->double
     {
     }
 
@@ -125,9 +128,9 @@ namespace pjmath
      * @param rhs Matrix to be added with this
      * @return A matrix which is the sum of this and @a rhs
      */
-    Mat operator+(const Mat &rhs) const
+    Self operator+(const Mat &rhs) const
     {
-      Mat mat = *this;
+      Self mat = *this;
       mat += rhs;
       return mat;
     }
@@ -153,9 +156,9 @@ namespace pjmath
      * @param rhs The minuend
      * @return A matrix which is the result of this - @a rhs
      */
-    Mat operator-(const Mat &rhs) const
+    Self operator-(const Mat &rhs) const
     {
-      Mat mat = *this;
+      Self mat = *this;
       mat -= rhs;
       return mat;
     }
@@ -165,9 +168,9 @@ namespace pjmath
      * 
      * @return A matrix where all the elements are negated from this
      */
-    Mat operator-() const
+    Self operator-() const
     {
-      Mat mat = Mat::zero();
+      Self mat = Self::zero();
       mat -= *this;
       return mat;
     }
@@ -193,11 +196,42 @@ namespace pjmath
      * @param v Multiplication factor
      * @return Matrix whose elements are this matrix's elements multiplied by @a v
      */
-    Mat operator*(const E &v) const
+    Self operator*(const E &v) const
     {
-      Mat mat = *this;
-      mat *= v;
-      return mat;
+      Self mat = *this;
+      return mat *= v;
+    }
+
+    /**
+     * @brief Multiplies this matrix by @a rhs and returns the result
+     * 
+     * @tparam Rhs Type of the matrix to multiply by
+     * @tparam Product The result matrix type
+     * @param rhs The matrix to multiply by
+     * @return Result matrix
+     */
+    template <typename Rhs,
+              typename Product =
+                  std::conditional_t<column_count == Rhs::column_count,
+                                     Self,
+                                     std::conditional_t<row_count == Rhs::row_count, Rhs,
+                                                        Mat<E, row_count, Rhs::column_count>>>>
+    Product operator*(const Rhs &rhs) const
+    {
+      static_assert(column_count == Rhs::row_count);
+
+      Product product = Product::zero();
+      for (size_type row = 0; row < Product::row_count; row++)
+      {
+        for (size_type col = 0; col < Product::column_count; col++)
+        {
+          for (size_type i = 0; i < column_count; i++)
+          {
+            product.at(row, col) += this->at(row, i) * rhs.at(i, col);
+          }
+        }
+      }
+      return product;
     }
 
     /**
@@ -208,60 +242,9 @@ namespace pjmath
      * @return A reference to this
      */
     template <typename Product = Self>
-    typename std::enable_if_t<is_square && !is_scalar, Product> &operator*=(const Mat &rhs)
+    std::enable_if_t<is_square, Product> &operator*=(const Mat &rhs)
     {
-      Product product;
-      for (size_type row = 0; row < row_count; row++)
-      {
-        for (size_type col = 0; col < column_count; col++)
-        {
-          E cell = 0;
-          for (size_type i = 0; i < row_count; i++)
-          {
-            cell += this->at(row, i) * rhs.at(i, col);
-          }
-          product.at(row, col) = cell;
-        }
-      }
-      return *this = product;
-    }
-
-    /**
-     * @brief Returns the result of multiplying two square matrices
-     * 
-     * @tparam Product The actual matrix type returned
-     * @param rhs The right side matrix
-     * @return The result of the multiplication, with the type of @a Product
-     */
-    template <typename Product = Self>
-    typename std::enable_if<is_square && !is_scalar, Product>::type operator*(const Mat &rhs) const
-    {
-      Product product = *this;
-      product *= rhs;
-      return product;
-    }
-
-    /**
-     * @brief Multiplies this matrix by a vector
-     * 
-     * @tparam Rhs A vector matrix type with Rhs::row_count == this->column_count
-     * @param rhs The vector used to multiply this
-     * @return The result vector
-     */
-    template <typename Rhs = Mat<E, N, 1>>
-    typename std::enable_if_t<Rhs::row_count == column_count, Rhs> operator*(const Rhs &rhs) const
-    {
-      Rhs ret;
-      for (size_type row = 0; row < row_count; row++)
-      {
-        E cell = 0;
-        for (size_type col = 0; col < column_count; col++)
-        {
-          cell += this->at(row, col) * rhs[col];
-        }
-        ret[row] = cell;
-      }
-      return ret;
+      return *self() = *self() * rhs;
     }
 
     /**
@@ -285,9 +268,9 @@ namespace pjmath
      * @param value The value to set the elements to
      * @return Matrix where all the elements are @a value
      */
-    static Mat filled(const E &value)
+    static Self filled(const E &value)
     {
-      Mat mat;
+      Self mat;
       mat.fill(value);
       return mat;
     }
@@ -297,9 +280,9 @@ namespace pjmath
      * 
      * @return A matrix where all elements are zero
      */
-    static Mat zero()
+    static Self zero()
     {
-      return Mat::filled(0);
+      return Self::filled(0);
     }
 
     /**
@@ -307,9 +290,9 @@ namespace pjmath
      * 
      * @return A matrix where all elements are one
      */
-    static Mat one()
+    static Self one()
     {
-      return Mat::filled(1);
+      return Self::filled(1);
     }
 
     /**
@@ -335,9 +318,9 @@ namespace pjmath
      * 
      * @return An identity matrix
      */
-    static Mat identity()
+    static Self identity()
     {
-      return Mat::diagonal(1);
+      return Self::diagonal(1);
     }
 
     /**
@@ -366,7 +349,7 @@ namespace pjmath
      * @return A reference to this
      */
     template <typename T = Self>
-    typename std::enable_if<M == N, T>::type &transpose()
+    std::enable_if_t<M == N, T> &transpose()
     {
       for (size_type row = 0; row < row_count; row++)
       {
@@ -401,7 +384,7 @@ namespace pjmath
      */
     Self *self()
     {
-      return dynamic_cast<Self *>(this);
+      return static_cast<Self *>(this);
     }
 
     /**
@@ -409,7 +392,7 @@ namespace pjmath
      */
     const Self *self() const
     {
-      return dynamic_cast<const Self *>(this);
+      return static_cast<const Self *>(this);
     }
   };
 

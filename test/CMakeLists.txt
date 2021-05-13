@@ -3,10 +3,12 @@ set(
     ALL_TESTS 
     vector3_tests
     mat_tests
+    mat/basic
     mat/arithmetic_tests
     mat/diagonal_tests
     mat/identity_tests
     mat/multiply_tests
+    vec/basic
 )
 
 function(add_test_binary TEST_NAME)
