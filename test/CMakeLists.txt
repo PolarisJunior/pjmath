@@ -9,6 +9,7 @@ set(
     mat/identity_tests
     mat/multiply_tests
     vec/basic
+    divisors
 )
 
 function(add_test_binary TEST_NAME)

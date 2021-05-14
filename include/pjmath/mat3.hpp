@@ -2,7 +2,7 @@
 #pragma once
 
 #include "mat.hpp"
-#include "math_defs.hpp"
+#include "definitions.hpp"
 
 namespace pjmath
 {

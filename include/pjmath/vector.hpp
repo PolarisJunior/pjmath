@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <cmath>
 
-#include "math_defs.hpp"
+#include "definitions.hpp"
 
 /**
  * To create a vector of size N, define a subclass
