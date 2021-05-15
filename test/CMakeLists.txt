@@ -23,7 +23,7 @@ function(add_test_binary TEST_NAME)
     target_compile_features(
         ${TEST_TARGET}
         PRIVATE
-        cxx_std_17
+        cxx_std_20
     )
 
     target_link_libraries(

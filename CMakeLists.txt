@@ -11,7 +11,7 @@ set(BIN_OUTPUT_NAME ${PROJECT_NAME})
 
 set(ALL_TARGETS ${LIB_NAME} ${BIN_NAME})
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY lib)
@@ -73,7 +73,7 @@ foreach(TARGET_NAME ${ALL_TARGETS})
     target_compile_features(
         ${TARGET_NAME}
         PRIVATE
-        cxx_std_17
+        cxx_std_20
     )
 endforeach()
 

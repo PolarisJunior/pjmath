@@ -3,6 +3,7 @@
 
 #include <array>
 #include <type_traits>
+#include <cstddef>
 
 namespace pjmath
 {
@@ -395,5 +396,4 @@ namespace pjmath
       return static_cast<const Self *>(this);
     }
   };
-
 }
